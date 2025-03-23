@@ -17,5 +17,6 @@ def custom_500_view(request):
 class AboutView(TemplateView):
     template_name = 'pages/about.html'
 
+
 class RulesView(TemplateView):
     template_name = 'pages/rules.html'
