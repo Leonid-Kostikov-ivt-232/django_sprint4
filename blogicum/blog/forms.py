@@ -15,8 +15,10 @@ class PostForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['category'].queryset = Category.objects.filter(is_published=True)
-        self.fields['location'].queryset = Location.objects.filter(is_published=True)
+        self.fields['category'].queryset = Category.objects.filter(
+            is_published=True)
+        self.fields['location'].queryset = Location.objects.filter(
+            is_published=True)
 
 
 class CommentForm(forms.ModelForm):

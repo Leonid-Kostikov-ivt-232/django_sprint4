@@ -7,7 +7,7 @@ from .models import Category, Post, Comment
 
 from django.contrib.auth.decorators import login_required
 from .forms import EditProfileForm
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect
 from django.contrib import messages
 from .forms import PostForm, CommentForm
 from django.db.models import Count
@@ -19,7 +19,7 @@ User = get_user_model()
 
 def index(request):
     template_name = 'blog/index.html'
-    
+
     posts = Post.objects.annotate(
         comment_count=Count('comments')
     ).filter(
@@ -75,13 +75,13 @@ def post_detail(request, id):
 
 def category_posts(request, category_slug):
     template_name = 'blog/category.html'
-    
+
     category = get_object_or_404(
         Category,
         slug=category_slug,
         is_published=True
     )
-    
+
     posts = Post.objects.annotate(
         comment_count=Count('comments')
     ).filter(
@@ -113,7 +113,8 @@ def profile_view(request, username):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    is_owner = request.user.is_authenticated and request.user.username == username
+    is_owner = (
+        request.user.is_authenticated and request.user.username == username)
 
     context = {
         'profile': profile,
@@ -131,12 +132,14 @@ def edit_profile(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Профиль успешно обновлен!')
-            return redirect(reverse('blog:profile', kwargs={'username': request.user.username}))
+            return redirect(
+                reverse('blog:profile',
+                        kwargs={'username': request.user.username}))
         else:
             messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = EditProfileForm(instance=request.user)
-    
+
     context = {
         'form': form
     }
@@ -157,11 +160,10 @@ def create_post(request):
             return redirect('blog:profile', username=request.user.username)
     else:
         form = PostForm()
-    
+
     context = {
-        'form': form
-        }
-    
+        'form': form}
+
     return render(request, template_name, context)
 
 
@@ -169,23 +171,24 @@ def create_post(request):
 def edit_post(request, post_id):
     template_name = 'blog/create.html'
     post = get_object_or_404(Post, pk=post_id)
-    
+
     if post.author != request.user:
         return redirect('blog:post_detail', id=post_id)
-    
+
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES, instance=post)
         if form.is_valid():
             form.save()
             messages.success(request, 'Публикация успешно обновлена!')
-            return redirect(reverse('blog:post_detail', kwargs={'id': post_id}))
+            return redirect(
+                reverse('blog:post_detail',
+                        kwargs={'id': post_id}))
     else:
         form = PostForm(instance=post)
-    
+
     context = {
-        'form': form
-        }
-    
+        'form': form}
+
     return render(request, template_name, context)
 
 
@@ -216,7 +219,7 @@ def edit_comment(request, post_id, comment_id):
             return redirect('blog:post_detail', id=post_id)
     else:
         form = CommentForm(instance=comment)
-    
+
     context = {
         'form': form,
         'comment': comment
@@ -231,17 +234,18 @@ def delete_post(request, post_id):
     post = get_object_or_404(Post, pk=post_id)
     if post.author != request.user:
         return redirect('blog:post_detail', id=post_id)
-    
+
     if request.method == 'POST':
         post.delete()
         messages.success(request, 'Публикация удалена!')
-        return redirect(reverse('blog:profile', kwargs={'username': request.user.username}))
-    
+        return redirect(
+            reverse('blog:profile',
+                    kwargs={'username': request.user.username}))
+
     context = {
         'form': None,
-        'post': post
-        }
-    
+        'post': post}
+
     return render(request, template_name, context)
 
 
@@ -251,15 +255,15 @@ def delete_comment(request, post_id, comment_id):
     comment = get_object_or_404(Comment, pk=comment_id, post_id=post_id)
     if comment.author != request.user:
         return redirect('blog:post_detail', id=post_id)
-    
+
     if request.method == 'POST':
         comment.delete()
         messages.success(request, 'Комментарий удален!')
         return redirect('blog:post_detail', id=post_id)
-    
+
     context = {
         'form': None,
         'comment': comment
     }
-    
+
     return render(request, template_name, context)
